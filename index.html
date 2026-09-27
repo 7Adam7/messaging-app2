@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messaging App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      height: 90vh;
+      max-height: 700px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 12px 12px 0 0;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .users-list {
+      background: #f5f5f5;
+      padding: 10px 20px;
+      border-bottom: 1px solid #ddd;
+      color: #666;
+      font-size: 12px;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 10px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.own {
+      justify-content: flex-end;
+    }
+
+    .message-content {
+      max-width: 70%;
+      padding: 12px 15px;
+      border-radius: 18px;
+      word-wrap: break-word;
+    }
+
+    .message.own .message-content {
+      background: #667eea;
+      color: white;
+      border-radius: 18px 4px 18px 18px;
+    }
+
+    .message:not(.own) .message-content {
+      background: #f0f0f0;
+      color: #333;
+      border-radius: 4px 18px 18px 18px;
+    }
+
+    .message-media {
+      max-width: 300px;
+      max-height: 300px;
+      border-radius: 12px;
+      margin-top: 8px;
+    }
+
+    .message-info {
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+      padding: 0 10px;
+    }
+
+    .input-area {
+      padding: 20px;
+      border-top: 1px solid #ddd;
+      background: white;
+      border-radius: 0 0 12px 12px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus {
+      border-color: #667eea;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    button {
+      padding: 12px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .file-btn {
+      padding: 12px 15px;
+    }
+
+    .login-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-screen input {
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    .login-screen button {
+      width: 100%;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .status-message {
+      text-align: center;
+      color: #999;
+      font-size: 12px;
+      padding: 10px;
+      background: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loginScreen" class="login-screen">
+      <div class="header">
+        <h1>💬 Messaging App</h1>
+        <p>Enter your username to join</p>
+      </div>
+      <div style="padding: 40px; width: 100%;">
+        <input type="text" id="usernameInput" placeholder="Enter your username" />
+        <button onclick="joinChat()">Join Chat</button>
+      </div>
+    </div>
+
+    <div id="chatScreen" class="hidden">
+      <div class="header">
+        <h1>💬 Messaging App</h1>
+        <p id="username"></p>
+      </div>
+      <div class="users-list" id="usersList">Users: Loading...</div>
+      <div class="messages" id="messages"></div>
+      <div class="input-area">
+        <div class="input-group">
+          <input type="text" id="messageInput" placeholder="Type a message..." />
+          <input type="file" id="fileInput" accept="image/*,video/*" />
+          <button class="file-btn" onclick="document.getElementById('fileInput').click()" title="Upload media">📎</button>
+        </div>
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    let socket;
+    let currentUsername = '';
+    let currentUserId = '';
+
+    function joinChat() {
+      const username = document.getElementById('usernameInput').value.trim();
+      if (!username) {
+        alert('Please enter a username');
+        return;
+      }
+
+      currentUsername = username;
+      socket = io();
+
+      socket.on('connect', () => {
+        console.log('Connected to server');
+        socket.emit('join', username);
+        currentUserId = socket.id;
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('chatScreen').classList.remove('hidden');
+        document.getElementById('username').textContent = `Welcome, ${username}!`;
+      });
+
+      socket.on('receive_message', (message) => {
+        displayMessage(message);
+      });
+
+      socket.on('user_joined', (data) => {
+        console.log('User joined:', data.username);
+        updateUsersList(data.users);
+      });
+
+      socket.on('user_left', (data) => {
+        console.log('User left:', data.username);
+        updateUsersList(data.users);
+      });
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      const fileInput = document.getElementById('fileInput');
+
+      if (!text && !fileInput.files.length) {
+        alert('Please enter a message or select a file');
+        return;
+      }
+
+      if (fileInput.files.length > 0) {
+        uploadFile(fileInput.files[0], text);
+        fileInput.value = '';
+      } else {
+        socket.emit('send_message', { text });
+        input.value = '';
+      }
+    }
+
+    function uploadFile(file, messageText) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      fetch('/upload', {
+        method: 'POST',
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          socket.emit('send_message', { text: messageText, mediaUrl: data.url });
+          document.getElementById('messageInput').value = '';
+        })
+        .catch(err => console.error('Upload error:', err));
+    }
+
+    function displayMessage(message) {
+      const messagesDiv = document.getElementById('messages');
+      const messageEl = document.createElement('div');
+      messageEl.className = 'message' + (message.userId === currentUserId ? ' own' : '');
+
+      let content = `
+        <div class="message-content">
+          ${message.username ? `<strong>${message.username}</strong><br>` : ''}
+          ${message.text || ''}
+      `;
+
+      if (message.mediaUrl) {
+        if (message.mediaUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+          content += `<img src="${message.mediaUrl}" class="message-media" alt="Shared image" />`;
+        } else if (message.mediaUrl.match(/\.(mp4|webm|mov)$/i)) {
+          content += `<video src="${message.mediaUrl}" class="message-media" controls></video>`;
+        }
+      }
+
+      content += '</div>';
+
+      if (message.timestamp) {
+        content += `<div class="message-info">${new Date(message.timestamp).toLocaleTimeString()}</div>`;
+      }
+
+      messageEl.innerHTML = content;
+      messagesDiv.appendChild(messageEl);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function updateUsersList(users) {
+      document.getElementById('usersList').textContent = 'Users: ' + users.join(', ');
+    }
+
+    document.getElementById('messageInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
